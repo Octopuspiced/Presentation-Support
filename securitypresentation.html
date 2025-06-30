@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Get Hacked! A Grandmaster's Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Green and Cream Chess Board -->
+    <!-- Application Structure Plan: The application is designed as an interactive chessboard. The main screen presents a board where each chess piece is a clickable element representing a different social engineering topic from the source report (e.g., Pawn for Phishing, Knight for Pretexting). Clicking a piece dynamically displays the relevant information in a dedicated content panel. This non-linear, thematic structure was chosen to be more engaging than a standard slide presentation. It encourages user exploration and reinforces the central chess analogy, making the security concepts more memorable and easier to digest at the user's own pace. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: Social Engineering Topics -> Goal: Organize/Inform -> Viz/Presentation: Interactive HTML/CSS Chessboard -> Interaction: Click piece to show content -> Justification: Creates a highly thematic and engaging user experience that encourages exploration over passive viewing. Library/Method: HTML/CSS with Unicode characters and JS event listeners.
+        - Report Info: Relative Threat Frequency (implied) -> Goal: Compare -> Viz/Presentation: Bar Chart -> Interaction: Hover for details, label wrapping -> Justification: Adds a quantitative visual aid to help users quickly grasp the prevalence of different attacks, making the threat more tangible and clearly presented. Library/Method: Chart.js with a Canvas element.
+        - Report Info: Defensive Strategies -> Goal: Inform -> Viz/Presentation: Styled List -> Interaction: Static display -> Justification: Presents actionable tips in a clear, easy-to-read format. Library/Method: Styled HTML.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #F8F8F8; /* A light, neutral background */
+        }
+        h1, h2, h3, .font-serif {
+            font-family: 'Merriweather', serif;
+        }
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens (3x2 layout for 6 pieces) */
+            border: 2px solid #769656; /* Darker green border */
+            gap: 2px; /* Small gap between squares for visual separation */
+        }
+        @media (min-width: 768px) { /* On medium screens and up, switch to 3 columns (2x3 layout for 6 pieces) */
+            .chessboard {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .chess-piece {
+            transition: all 0.3s ease;
+            color: #30422B; /* Dark green for text */
+            aspect-ratio: 1 / 1; /* Ensures squares are square */
+            display: flex; /* Use flex to center content within the square */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px; /* Added padding to ensure content isn't too close to edges */
+        }
+        .chess-piece:hover, .chess-piece.active {
+            background-color: #9BC07A; /* Lighter green for hover/active */
+            color: #FFFFFF;
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+        .chess-piece.active {
+             box-shadow: 0 0 15px rgba(155, 192, 122, 0.7);
+        }
+        .content-panel {
+            background-color: #FFFFFF; /* Pure white content background */
+            border: 1px solid #9BC07A; /* Lighter green border */
+            transition: opacity 0.5s ease-in-out;
+            opacity: 0; /* Hidden by default for fade-in effect */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height, adjust with media queries or use Tailwind for responsive heights */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold font-serif text-[#30422B]">Don't Get Hacked!</h1>
+            <p class="text-lg md:text-xl text-gray-600 mt-2 font-semibold">A Grandmaster's Guide to Cyber Security</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-1">
+                <div id="intro-text" class="mb-6 bg-white/50 p-6 rounded-lg border border-gray-200 shadow-xl">
+                    <h2 class="text-2xl font-bold font-serif text-[#30422B] mb-2">The Game is Afoot</h2>
+                    <p class="text-gray-700">Welcome to the chessboard of cyber security. In this game, the opponent doesn't attack your computer directly—they attack your mind. Each piece on the board represents a common tactic used by social engineers. Click on a piece to learn its moves, how to spot the trap, and how to defend your king. Your awareness is your strongest piece. Play wisely.</p>
+                </div>
+                <div class="chessboard rounded-lg overflow-hidden shadow-lg max-w-sm mx-auto">
+                    <!-- Chess pieces as buttons will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 content-panel p-6 rounded-lg shadow-lg min-h-[50vh] flex flex-col justify-center" id="content-display">
+                <!-- Initial dynamic content will be loaded here by JavaScript -->
+            </div>
+
+        </main>
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Stay vigilant. Your security is your move.</p>
+        </footer>
+    </div>
+
+    <script>
+        const appData = {
+            intro: {
+                title: 'The Chessboard of Cyber Security',
+                icon: '♔', // Placeholder icon, not actually displayed for intro
+                analogy: '', // Not applicable for intro
+                looksLike: [],
+                howToSpot: [],
+                contentHtml: `
+                    <div class="text-center">
+                         <div class="text-6xl text-gray-300 font-serif">♙♘♗♖♕♔</div>
+                         <h3 class="text-2xl font-serif text-gray-500 mt-4">Select a piece to begin the lesson.</h3>
+                         <p class="text-gray-400 mt-2">Learn the enemy's moves to protect your kingdom.</p>
+                    </div>
+                `
+            },
+            pawn: {
+                title: "The Pawn's Deception: Phishing",
+                icon: '♙',
+                analogy: "These are the most common, seemingly innocuous attacks, like a single pawn advance. They're widespread and often successful because they rely on sheer volume and human curiosity.",
+                looksLike: [
+                    "<strong>Email:</strong> The classic 'Your account has been compromised, click here!' email. Often poorly written, but sometimes incredibly convincing.",
+                    "<strong>Fake Websites:</strong> A link that looks just like your bank or a popular service, but it's designed to steal your login credentials."
+                ],
+                howToSpot: [
+                    "<strong>Sender's Email:</strong> Does <span class='font-mono'>support@cheese.com</span> look right? (Hint: The 'e' instead of 's' in 'cheese' is a giveaway, mimicking a common site!)",
+                    "<strong>Generic Greetings:</strong> 'Dear Customer' instead of your name.",
+                    "<strong>Urgency/Threats:</strong> 'Act now or your account will be deleted!'",
+                    "<strong>Suspicious Links:</strong> Hover over links before clicking. Does the URL match where you expect to go?",
+                    "<strong>Bad Grammar/Spelling:</strong> A common, though not universal, sign."
+                ],
+                chart: true
+            },
+            knight: {
+                title: "The Knight's Trick: Pretexting",
+                icon: '♘',
+                analogy: "A knight's move is deceptive and unexpected. Pretexting is similar – it's carefully crafted to create a believable, albeit fake, scenario.",
+                looksLike: [
+                    "An attacker calls pretending to be IT support needing your password to 'fix' an issue.",
+                    "Someone emails claiming to be a vendor, asking for updated banking details for an invoice.",
+                    "A 'new employee' calls asking for help accessing systems they shouldn't."
+                ],
+                howToSpot: [
+                    "<strong>Verify Identity:</strong> If someone asks for sensitive info, always verify their identity through an independent channel (e.g., call them back on a known, official number).",
+                    "<strong>Don't Trust, Verify:</strong> Even if they know details about you, don't assume legitimacy. Attackers do their homework.",
+                    "<strong>Question Unusual Requests:</strong> Is it normal for IT to ask for your password over the phone? (Spoiler: No!)"
+                ]
+            },
+            bishop: {
+                title: "The Bishop's Blind Spot: Baiting",
+                icon: '♗',
+                analogy: "A bishop sees far in one direction but is blind to squares of the opposite color. Baiting exploits your desire for something (a freebie, a favor) and your blindness to the underlying trap.",
+                looksLike: [
+                    "<strong>Physical:</strong> USB drives left in parking lots, labeled 'Company Payroll.' Curiosity often wins.",
+                    "<strong>Digital:</strong> Free software, music, or movie downloads that are actually malware.",
+                    "<strong>Quid Pro Quo:</strong> 'Click this link to win a free vacation!' You give them your info, they give you trouble."
+                ],
+                howToSpot: [
+                    "<strong>Be Suspicious of 'Free':</strong> If it seems too good to be true, it probably is.",
+                    "<strong>Never Plug in Unknown Devices:</strong> That USB drive could infect your entire network. Report it instead.",
+                    "<strong>Evaluate the Exchange:</strong> Is what you're getting worth the risk of what you're giving away? (Hint: Your security is priceless)."
+                ]
+            },
+            rook: {
+                title: "The Rook's Rampage: Smishing & Vishing",
+                icon: '♖',
+                analogy: "Rooks move in straight lines, directly attacking across the board. Smishing (SMS) and Vishing (Voice) are direct, often aggressive, attacks.",
+                looksLike: [
+                    "<strong>Smishing (SMS):</strong> 'Your package delivery failed. Click here to reschedule: [malicious link]'",
+                    "<strong>Vishing (Voice):</strong> The 'IRS/Tax Collector' demanding immediate payment via gift cards or face arrest."
+                ],
+                howToSpot: [
+                    "<strong>Don't Reply to Suspicious Texts:</strong> Delete them.",
+                    "<strong>Hang Up on Suppicious Calls:</strong> Don't engage. If in doubt, call the organization back on their official number.",
+                    "<strong>No Legitimate Company Will Ask For:</strong> Gift card payments, cryptocurrency, or sensitive information over an unverified call."
+                ]
+            },
+            queen: {
+                title: "The Queen's Gambit: Impersonation",
+                icon: '♕',
+                analogy: "The Queen is powerful and versatile. These attacks involve sophisticated deception to gain unauthorized access to your kingdom, often by pretending to be someone they're not.",
+                looksLike: [
+                    "<strong>Fake Accounts/Handles:</strong> Someone creating a messaging app account (e.g., Slack, Teams) with a name similar to a colleague or manager to request urgent information or actions.",
+                    "<strong>Spoofed Emails/Messages:</strong> Emails or texts that appear to come from an internal department (e.g., IT, HR, Finance) but have subtle irregularities in the sender's address or signature.",
+                    "<strong>Deceptive Support Requests:</strong> An attacker posing as IT support via text or email, asking you to click a link or provide credentials for a 'system upgrade' or 'issue resolution'."
+                ],
+                howToSpot: [
+                    "<strong>Verify Sender/Handle:</strong> Always double-check the full email address or messaging app handle. Look for subtle misspellings or extra characters.",
+                    "<strong>Cross-Reference Requests:</strong> If a request seems unusual or urgent, verify it through a different, established communication channel (e.g., call the person directly on a known number, or send a message via an official channel you know is secure). Don't reply directly to the suspicious message.",
+                    "<strong>Question Unusual Behavior:</strong> Is it normal for this person/department to ask for this information in this way? If it feels off, it probably is.",
+                    "<strong>Report Suspicious Activity:</strong> If you suspect an impersonation attempt, report it to your IT or security team immediately. Do not engage with the sender."
+                ]
+            },
+            king: {
+                title: "Protecting Your King: Defensive Strategy",
+                icon: '♔',
+                analogy: "Your King is your most valuable piece—your data, your access, your identity. Protecting it requires a strategic, layered defense.",
+                looksLike: [], /* Not applicable for defensive strategies */
+                howToSpot: [
+                    "<strong>Think Before You Click:</strong> This is your single most powerful move. Pause, examine, and verify.",
+                    "<strong>Verify, Verify, Verify:</strong> When in doubt, use an official, independent channel to confirm any request.",
+                    "<strong>Report Suspicious Activity:</strong> Notify your IT/Security department immediately. You might prevent a checkmate against a colleague.",
+                    "<strong>Use Strong, Unique Passwords:1</strong> A complex, unique password for every account is like having extra guards.",
+                    "<strong>Enable Multi-Factor Authentication (MFA):</strong> This is the ultimate defense. Even if an attacker steals your password (your key), they can't get past the second lock.",
+                    "<strong>Keep Software Updated:</strong> Patches fix vulnerabilities. An unpatched system is an open gate."
+                ]
+            }
+        };
+
+        const chessboard = document.querySelector('.chessboard');
+        const contentDisplay = document.getElementById('content-display');
+        let currentChart = null;
+
+        function buildSection(title, items) {
+            if (!items || items.length === 0) return '';
+            let listItems = items.map(item => `<li class="mb-2 pl-5 relative before:content-['▸'] before:absolute before:left-0 before:top-0 before:text-[#9BC07A]">${item}</li>`).join('');
+            return `<h3 class="text-xl font-bold font-serif text-[#30422B] mt-4 mb-2">${title}</h3><ul class="text-gray-700">${listItems}</ul>`;
+        }
+
+        function displayContent(pieceKey) {
+            const piece = appData[pieceKey];
+            if (!piece) return;
+
+            // Remove active class from all pieces
+            document.querySelectorAll('.chess-piece').forEach(p => p.classList.remove('active'));
+            // Add active class to the clicked piece, if it's not the intro
+            if (pieceKey !== 'intro') {
+                const activePiece = document.querySelector(`[data-piece="${pieceKey}"]`);
+                if(activePiece) activePiece.classList.add('active');
+            }
+
+
+            contentDisplay.style.opacity = 0;
+
+            setTimeout(() => {
+                let contentHTML = '';
+                if (pieceKey === 'intro') {
+                    contentHTML = piece.contentHtml;
+                } else {
+                    contentHTML = `
+                        <div class="w-full">
+                            <h2 class="text-3xl font-bold font-serif text-[#30422B] mb-3">${piece.title}</h2>
+                            <p class="text-gray-600 italic mb-4">${piece.analogy}</p>
+                            ${piece.chart ? '<div class="chart-container my-4"><canvas id="attackChart"></canvas></div><p class="text-center text-sm text-gray-500 mb-4">Illustrative frequency of common cyber attacks. Data is generalized and not from the provided source report.</p>' : ''}
+                            ${buildSection('What it looks like:', piece.looksLike)}
+                            ${buildSection('How to spot the trap:', piece.howToSpot)}
+                        </div>
+                    `;
+                }
+                contentDisplay.innerHTML = contentHTML;
+
+                if (piece.chart) {
+                    const ctx = document.getElementById('attackChart').getContext('2d');
+                    if (currentChart) {
+                        currentChart.destroy();
+                    }
+                    currentChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Phishing', 'Pretexting', 'Baiting', 'Vishing/Smishing', 'Impersonation'],
+                            datasets: [{
+                                label: 'Attack Frequency',
+                                data: [85, 45, 30, 60, 20], /* Illustrative data */
+                                backgroundColor: [
+                                    'rgba(48, 66, 43, 0.7)', /* Dark Green */
+                                    'rgba(118, 150, 86, 0.7)', /* Medium Green */
+                                    'rgba(48, 66, 43, 0.5)',
+                                    'rgba(118, 150, 86, 0.6)',
+                                    'rgba(48, 66, 43, 0.4)'
+                                ],
+                                borderColor: [
+                                    'rgba(48, 66, 43, 1)',
+                                    'rgba(118, 150, 86, 1)',
+                                    'rgba(48, 66, 43, 1)',
+                                    'rgba(118, 150, 86, 1)',
+                                    'rgba(48, 66, 43, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y', // Horizontal bars
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: '#30422B', /* Dark green tooltip */
+                                    titleFont: { size: 14 },
+                                    bodyFont: { size: 12 },
+                                    padding: 10,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.x !== null) {
+                                                label += context.parsed.x + '% reported'; // Example tooltip text
+                                            }
+                                            return label;
+                                        },
+                                        title: function(context) {
+                                            // Wrap labels if too long (more than 16 chars)
+                                            const originalLabel = context[0].label;
+                                            if (originalLabel.length > 16) {
+                                                return originalLabel.match(/.{1,16}/g);
+                                            }
+                                            return originalLabel;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(0,0,0,0.05)'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Approximate Frequency (%)'
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 0,
+                                        minRotation: 0,
+                                        callback: function(value, index, values) {
+                                            // Wrap labels if too long (more than 16 chars)
+                                            const label = this.getLabelForValue(value);
+                                            if (label.length > 16) {
+                                                return label.match(/.{1,16}/g);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                contentDisplay.style.opacity = 1;
+            }, 300);
+        }
+
+        const pieceOrder = ['pawn', 'knight', 'bishop', 'rook', 'queen', 'king']; // Define a logical order for the pieces
+
+        pieceOrder.forEach((key, index) => {
+            const piece = appData[key];
+            const cell = document.createElement('div');
+            cell.className = 'chess-piece flex flex-col items-center justify-center p-2 text-center';
+
+            // Dynamic background color based on grid position
+            const getNumColumns = () => window.innerWidth >= 768 ? 3 : 2; // Adjusted to 3 columns for larger screens
+            const numColumns = getNumColumns();
+            const row = Math.floor(index / numColumns);
+            const col = index % numColumns;
+            cell.style.backgroundColor = ((row + col) % 2 === 0) ? '#F0D9B5' : '#769656';
+
+            cell.dataset.piece = key;
+            cell.innerHTML = `
+                <div class="text-4xl md:text-5xl">${piece.icon}</div>
+                <div class="text-xs md:text-sm font-semibold mt-1">${piece.title.split(':')[1].trim()}</div>
+            `;
+            cell.addEventListener('click', () => displayContent(key));
+            chessboard.appendChild(cell);
+        });
+
+        // Initialize with the intro content
+        displayContent('intro');
+
+        // Initial fade-in of the content panel
+        setTimeout(() => {
+            contentDisplay.style.opacity = 1;
+        }, 100);
+
+        // Optional: Re-render chessboard colors on resize to handle column changes
+        window.addEventListener('resize', () => {
+            const getNumColumns = () => window.innerWidth >= 768 ? 3 : 2; // Adjusted to 3 columns for larger screens
+            const currentNumColumns = getNumColumns();
+            chessboard.childNodes.forEach((cell, index) => {
+                const row = Math.floor(index / currentNumColumns);
+                const col = index % currentNumColumns;
+                cell.style.backgroundColor = ((row + col) % 2 === 0) ? '#F0D9B5' : '#769656';
+            });
+        });
+    </script>
+</body>
+</html>

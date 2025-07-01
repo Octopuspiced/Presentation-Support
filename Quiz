@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be safe!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #F8F8F8; /* A light, neutral background */
+            color: #30422B; /* Dark green for text */
+        }
+        h1, h2, h3, .font-serif {
+            font-family: 'Merriweather', serif;
+        }
+        .quiz-container {
+            background-color: #FFFFFF; /* Pure white content background */
+            border: 1px solid #9BC07A; /* Lighter green border */
+        }
+        .question-card {
+            background-color: #F0D9B5; /* Cream background for questions */
+            border: 1px solid #769656; /* Darker green border */
+        }
+        .option-label {
+            background-color: #E0E0E0; /* Light gray for options */
+            transition: all 0.2s ease;
+        }
+        .option-label:hover {
+            background-color: #D0D0D0; /* Slightly darker on hover */
+        }
+        input[type="radio"]:checked + .option-label {
+            background-color: #9BC07A; /* Lighter green when selected */
+            color: #FFFFFF;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #769656; /* Darker green for buttons */
+            color: #FFFFFF;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #30422B; /* Even darker green on hover */
+        }
+        .feedback-correct {
+            color: #10B981; /* Tailwind green-500 */
+        }
+        .feedback-incorrect {
+            color: #EF4444; /* Tailwind red-500 */
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold font-serif text-[#30422B]">Cyber Security Quiz</h1>
+            <p class="text-lg md:text-xl text-gray-600 mt-2 font-semibold">Let's go!</p>
+        </header>
+
+        <main class="quiz-container p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+            <div id="quiz-start-screen" class="text-center">
+                <h2 class="text-2xl font-bold font-serif mb-4">Welcome to the Cyber Security Quiz!</h2>
+                <p class="text-lg text-gray-700 mb-6">Test your protective instincts!</p>
+                <button id="start-quiz-btn" class="btn-primary py-3 px-6 rounded-full shadow-md hover:shadow-lg">Start Quiz</button>
+            </div>
+
+            <div id="quiz-display" class="hidden">
+                <!-- Questions will be loaded here by JavaScript -->
+            </div>
+
+            <div id="quiz-results" class="hidden mt-8 p-6 rounded-lg text-center">
+                <h2 class="text-3xl font-bold font-serif mb-4">Quiz Results</h2>
+                <p id="score-display" class="text-2xl mb-4"></p>
+                <div id="feedback-details" class="text-left">
+                    <!-- Detailed feedback will go here -->
+                </div>
+                <button id="restart-quiz-btn" class="btn-primary py-3 px-6 rounded-full mt-6 shadow-md hover:shadow-lg">Restart Quiz</button>
+            </div>
+        </main>
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Stay vigilant. Your security is your brilliant move!!</p>
+        </footer>
+    </div>
+
+    <script>
+        // Quiz questions and answers based on the provided appData
+        const quizQuestions = [
+            {
+                question: "Which social engineering tactic is described as 'the most common, seemingly innocuous attacks, widespread and often successful due to sheer volume and human curiosity'?",
+                options: {
+                    A: "Pretexting",
+                    B: "Phishing",
+                    C: "Baiting",
+                    D: "Impersonation"
+                },
+                answer: "B",
+                explanation: "Phishing is analogous to the 'Pawn's Deception' and is described as widespread and high-volume."
+            },
+            {
+                question: "What is a common sign of a phishing attempt in an email?",
+                options: {
+                    A: "A personalized greeting with your full name.",
+                    B: "A request to verify your account by calling a known official number.",
+                    C: "Urgency, threats, and suspicious links.",
+                    D: "Perfect grammar and spelling."
+                },
+                answer: "C",
+                explanation: "Phishing emails often create a sense of urgency or threat, and contain suspicious links."
+            },
+            {
+                question: "Someone calls you pretending to be IT support, asking for your password to 'fix' an issue. What social engineering tactic is this?",
+                options: {
+                    A: "Baiting",
+                    B: "Smishing",
+                    C: "Pretexting",
+                    D: "Phishing"
+                },
+                answer: "C",
+                explanation: "Pretexting involves creating a believable, fake scenario to trick the victim, like pretending to be IT support."
+            },
+            {
+                question: "You find a USB drive labeled 'Company Payroll' in the parking lot and are tempted to plug it into your work computer. Which tactic are you potentially falling victim to?",
+                options: {
+                    A: "Impersonation",
+                    B: "Baiting",
+                    C: "Vishing",
+                    D: "Pretexting"
+                },
+                answer: "B",
+                explanation: "Baiting exploits curiosity or desire for a 'freebie' to trick victims into compromising their system."
+            },
+            {
+                question: "What is a key defensive strategy against social engineering attacks?",
+                options: {
+                    A: "Always trust emails from familiar-looking senders.",
+                    B: "Plug in any unknown USB drives to check their contents.",
+                    C: "Think before you click and verify requests through independent channels.",
+                    D: "Disable multi-factor authentication for faster logins."
+                },
+                answer: "C",
+                explanation: "Thinking before clicking and verifying information are crucial defensive moves."
+            },
+            {
+                question: "Which attack involves an attacker creating a messaging app account with a name similar to a colleague or manager to request urgent information?",
+                options: {
+                    A: "Phishing",
+                    B: "Baiting",
+                    C: "Smishing",
+                    D: "Impersonation"
+                },
+                answer: "D",
+                explanation: "Impersonation is when an attacker pretends to be someone they are not to gain access or information."
+            },
+            {
+                question: "What does 'Smishing' primarily refer to?",
+                options: {
+                    A: "Deceptive phone calls.",
+                    B: "Malware disguised as free software.",
+                    C: "Phishing attempts via SMS messages.",
+                    D: "Fake websites designed to steal credentials."
+                },
+                answer: "C",
+                explanation: "Smishing is a portmanteau of SMS and phishing, referring to attacks via text messages."
+            },
+            {
+                question: "If an 'IRS/Tax Collector' calls demanding immediate payment via gift cards or cryptocurrency, what should you do?",
+                options: {
+                    A: "Immediately purchase gift cards as requested.",
+                    B: "Provide your banking details to resolve the issue.",
+                    B: "Provide your banking details to resolve the issue.",
+                    C: "Hang up and call the IRS back on their official, known number.",
+                    D: "Argue with them to prove they are fake."
+                },
+                answer: "C",
+                explanation: "Legitimate organizations will not demand payment via gift cards or cryptocurrency, and you should always verify by calling official numbers."
+            },
+            {
+                question: "Why is Multi-Factor Authentication (MFA) considered the 'ultimate defense'?",
+                options: {
+                    A: "It makes your password shorter and easier to remember.",
+                    B: "It eliminates the need for strong, unique passwords.",
+                    C: "It adds a second layer of security, making it harder for attackers even if they steal your password.",
+                    D: "It automatically updates all your software."
+                },
+                answer: "C",
+                explanation: "MFA provides an additional layer of security beyond just a password."
+            },
+            {
+                question: "Which of the following is NOT a recommended way to spot a pretexting attempt?",
+                options: {
+                    A: "Verify identity through an independent channel.",
+                    B: "Question unusual requests.",
+                    C: "Assume legitimacy if they know details about you.",
+                    D: "Don't trust, verify."
+                },
+                answer: "C",
+                explanation: "Attackers often do their homework; knowing details doesn't guarantee legitimacy. You should always verify."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        const quizStartScreen = document.getElementById('quiz-start-screen');
+        const quizDisplay = document.getElementById('quiz-display');
+        const quizResults = document.getElementById('quiz-results');
+        const scoreDisplay = document.getElementById('score-display');
+        const feedbackDetails = document.getElementById('feedback-details');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
+
+        /**
+         * Shuffles an array in place using the Fisher-Yates (Knuth) algorithm.
+         * @param {Array} array The array to shuffle.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        /**
+         * Loads and displays the current question.
+         */
+        function loadQuestion() {
+            if (currentQuestionIndex < quizQuestions.length) {
+                const q = quizQuestions[currentQuestionIndex];
+                let optionsHtml = '';
+                // Shuffle options for each question
+                const optionKeys = Object.keys(q.options);
+                shuffleArray(optionKeys);
+
+                optionKeys.forEach(key => {
+                    optionsHtml += `
+                        <div class="mb-3">
+                            <input type="radio" id="option-${key}" name="question-${currentQuestionIndex}" value="${key}" class="hidden" ${userAnswers[currentQuestionIndex] === key ? 'checked' : ''}>
+                            <label for="option-${key}" class="option-label block p-4 rounded-lg cursor-pointer shadow-sm hover:shadow-md">
+                                <span class="font-bold mr-2">${key}:</span> ${q.options[key]}
+                            </label>
+                        </div>
+                    `;
+                });
+
+                quizDisplay.innerHTML = `
+                    <div class="question-card p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-xl font-bold mb-4">Question ${currentQuestionIndex + 1} of ${quizQuestions.length}:</h3>
+                        <p class="text-lg mb-6">${q.question}</p>
+                        <div class="options-container">
+                            ${optionsHtml}
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button id="next-question-btn" class="btn-primary py-3 px-6 rounded-full shadow-md hover:shadow-lg">
+                            ${currentQuestionIndex === quizQuestions.length - 1 ? 'Submit Quiz' : 'Next Question'}
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById('next-question-btn').addEventListener('click', handleNextQuestion);
+            } else {
+                showResults();
+            }
+        }
+
+        /**
+         * Handles the click event for the "Next Question" or "Submit Quiz" button.
+         */
+        function handleNextQuestion() {
+            const selectedOption = document.querySelector(`input[name="question-${currentQuestionIndex}"]:checked`);
+            if (selectedOption) {
+                userAnswers[currentQuestionIndex] = selectedOption.value;
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                // Use a custom modal or message box instead of alert()
+                displayMessage("Please select an answer before proceeding.");
+            }
+        }
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} message The message to display.
+         */
+        function displayMessage(message) {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            messageBox.innerHTML = `
+                <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-sm mx-auto">
+                    <p class="text-lg font-semibold text-[#30422B] mb-4">${message}</p>
+                    <button class="btn-primary py-2 px-4 rounded-full" onclick="this.closest('.fixed').remove()">OK</button>
+                </div>
+            `;
+            document.body.appendChild(messageBox);
+        }
+
+        /**
+         * Calculates and displays the quiz results.
+         */
+        function showResults() {
+            let score = 0;
+            let feedbackHtml = '';
+
+            quizQuestions.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === q.answer;
+                if (isCorrect) {
+                    score++;
+                }
+
+                feedbackHtml += `
+                    <div class="mb-4 p-4 rounded-lg ${isCorrect ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}">
+                        <p class="font-semibold text-lg mb-2">Q${index + 1}: ${q.question}</p>
+                        <p>Your Answer: <span class="${isCorrect ? 'feedback-correct' : 'feedback-incorrect'} font-bold">${userAnswer ? q.options[userAnswer] : 'No Answer'}</span></p>
+                        <p>Correct Answer: <span class="feedback-correct font-bold">${q.options[q.answer]}</span></p>
+                        <p class="text-sm italic mt-2">${q.explanation}</p>
+                    </div>
+                `;
+            });
+
+            scoreDisplay.textContent = `You scored ${score} out of ${quizQuestions.length}!`;
+            feedbackDetails.innerHTML = feedbackHtml;
+
+            quizDisplay.classList.add('hidden');
+            quizResults.classList.remove('hidden');
+        }
+
+        /**
+         * Starts the quiz by hiding the start screen and loading the first question.
+         */
+        function startQuiz() {
+            quizStartScreen.classList.add('hidden');
+            quizDisplay.classList.remove('hidden');
+            shuffleArray(quizQuestions); // Shuffle questions for a new experience
+            currentQuestionIndex = 0; // Reset index for a fresh start
+            userAnswers = {}; // Clear previous answers
+            loadQuestion();
+        }
+
+        /**
+         * Resets the quiz to its initial state (start screen).
+         */
+        function restartQuiz() {
+            quizResults.classList.add('hidden');
+            quizStartScreen.classList.remove('hidden');
+            // No need to call loadQuestion here, as startQuiz will handle it.
+        }
+
+        // Event listeners
+        startQuizBtn.addEventListener('click', startQuiz);
+        restartQuizBtn.addEventListener('click', restartQuiz);
+
+        // Initial setup: show the start screen
+        document.addEventListener('DOMContentLoaded', () => {
+            quizStartScreen.classList.remove('hidden');
+            quizDisplay.classList.add('hidden'); // Ensure quiz display is hidden initially
+            quizResults.classList.add('hidden'); // Ensure results are hidden initially
+        });
+    </script>
+</body>
+</html>

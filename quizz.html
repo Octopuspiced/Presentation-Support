@@ -51,6 +51,28 @@
         .feedback-incorrect {
             color: #EF4444; /* Tailwind red-500 */
         }
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -278,24 +300,38 @@
                 loadQuestion();
             } else {
                 // Use a custom modal or message box instead of alert()
-                displayMessage("Please select an answer before proceeding.");
+                showModal("Selection Required", "Please select an answer before proceeding.", "OK");
             }
         }
 
         /**
-         * Displays a temporary message to the user.
-         * @param {string} message The message to display.
+         * Displays a custom modal message.
+         * @param {string} title The title of the modal.
+         * @param {string} message The message content.
+         * @param {string} buttonText The text for the modal button.
+         * @param {function} [callback] Optional callback function to execute when the button is clicked.
          */
-        function displayMessage(message) {
-            const messageBox = document.createElement('div');
-            messageBox.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            messageBox.innerHTML = `
-                <div class="bg-white p-8 rounded-lg shadow-xl text-center max-w-sm mx-auto">
-                    <p class="text-lg font-semibold text-[#30422B] mb-4">${message}</p>
-                    <button class="btn-primary py-2 px-4 rounded-full" onclick="this.closest('.fixed').remove()">OK</button>
+        function showModal(title, message, buttonText, callback) {
+            const existingModal = document.querySelector('.modal-overlay');
+            if (existingModal) existingModal.remove(); // Remove any existing modal first
+
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    <h3 class="text-xl font-bold font-serif text-[#30422B] mb-4">${title}</h3>
+                    <p class="text-gray-700 mb-6">${message}</p>
+                    <button class="btn-primary py-2 px-4 rounded-full" id="modal-btn">${buttonText}</button>
                 </div>
             `;
-            document.body.appendChild(messageBox);
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('modal-btn').addEventListener('click', () => {
+                modalOverlay.remove();
+                if (callback) {
+                    callback();
+                }
+            });
         }
 
         /**
@@ -330,24 +366,38 @@
         }
 
         /**
-         * Displays a mock location message.
+         * Displays the "You lost the quiz" message.
          */
-        function displayLocationMessage() {
-            const mockLocation = "Tarnowskie Góry, Silesian Voivodeship, Poland";
-            displayMessage(`Your current approximate location is: ${mockLocation}. We are now starting the quiz.`);
+        function endQuizAsLost() {
+            quizStartScreen.classList.add('hidden');
+            quizDisplay.classList.add('hidden'); // Ensure quiz display is hidden
+            quizResults.classList.remove('hidden'); // Show results section
+
+            scoreDisplay.textContent = "You fell for the trap! You lost the quiz.";
+            scoreDisplay.classList.add('text-red-600'); // Make the text red for emphasis
+            feedbackDetails.innerHTML = `
+                <p class="text-lg text-gray-700 mb-4">
+                    By clicking 'Verify Activity' on an unverified security alert, you demonstrated a common vulnerability to social engineering.
+                    Always be suspicious of unexpected security alerts, especially those demanding immediate action.
+                    A real security system would not ask you to verify activity in this manner.
+                </p>
+                <p class="text-lg text-gray-700 font-semibold">
+                    Remember: Think before you click, and verify through official channels!
+                </p>
+            `;
         }
 
         /**
-         * Starts the quiz by hiding the start screen and loading the first question.
+         * Initiates the fake phishing test.
          */
-        function startQuiz() {
-            displayLocationMessage(); // Show the mock location message
-            quizStartScreen.classList.add('hidden');
-            quizDisplay.classList.remove('hidden');
-            shuffleArray(quizQuestions); // Shuffle questions for a new experience
-            currentQuestionIndex = 0; // Reset index for a fresh start
-            userAnswers = {}; // Clear previous answers
-            loadQuestion();
+        function startPhishingTest() {
+            const mockLocation = "Tarnowskie Góry, Silesian Voivodeship, Poland";
+            showModal(
+                "Security Alert: Unusual Activity Detected!",
+                `Our systems have detected an unusual login attempt from your current approximate location: ${mockLocation}. To protect your account, please click 'Verify Activity' immediately.`,
+                "Verify Activity",
+                endQuizAsLost // This callback now leads to losing the quiz
+            );
         }
 
         /**
@@ -356,11 +406,12 @@
         function restartQuiz() {
             quizResults.classList.add('hidden');
             quizStartScreen.classList.remove('hidden');
+            scoreDisplay.classList.remove('text-red-600'); // Remove red text if it was applied
             // No need to call loadQuestion here, as startQuiz will handle it.
         }
 
         // Event listeners
-        startQuizBtn.addEventListener('click', startQuiz);
+        startQuizBtn.addEventListener('click', startPhishingTest); // Call the phishing test first
         restartQuizBtn.addEventListener('click', restartQuiz);
 
         // Initial setup: show the start screen

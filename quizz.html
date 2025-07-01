@@ -388,13 +388,35 @@
         }
 
         /**
+         * Generates a random mock location.
+         * @returns {string} A randomly selected location string.
+         */
+        function getRandomLocation() {
+            const locations = [
+                "New York, USA",
+                "London, UK",
+                "Tokyo, Japan",
+                "Berlin, Germany",
+                "Sydney, Australia",
+                "Paris, France",
+                "Toronto, Canada",
+                "Mumbai, India",
+                "São Paulo, Brazil",
+                "Cape Town, South Africa",
+                "Tarnowskie Góry, Silesian Voivodeship, Poland" // Keep the original one too
+            ];
+            const randomIndex = Math.floor(Math.random() * locations.length);
+            return locations[randomIndex];
+        }
+
+        /**
          * Initiates the fake phishing test.
          */
         function startPhishingTest() {
-            const mockLocation = "Tarnowskie Góry, Silesian Voivodeship, Poland";
+            const randomLocation = getRandomLocation(); // Get a random location
             showModal(
                 "Security Alert: Unusual Activity Detected!",
-                `Our systems have detected an unusual login attempt from your current approximate location: ${mockLocation}. To protect your account, please click 'Verify Activity' immediately.`,
+                `Our systems have detected an unusual login attempt from your current approximate location: ${randomLocation}. To protect your account, please click 'Verify Activity' immediately.`,
                 "Verify Activity",
                 endQuizAsLost // This callback now leads to losing the quiz
             );
